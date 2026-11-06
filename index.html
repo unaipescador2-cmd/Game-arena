@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameArena · Panel de administración</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="css/estilos.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <nav class="navbar barra-arena sticky-top">
+    <div class="container">
+      <a class="navbar-brand marca" href="#">
+        <i class="bi bi-controller"></i> Game<span>Arena</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span id="estadoConexion" class="badge rounded-pill text-bg-secondary">Conectando…</span>
+        <button type="button" class="btn btn-sm btn-outline-light" id="btnTema" aria-label="Cambiar tema claro/oscuro">
+          <i class="bi bi-sun"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+
+    <!-- Estadísticas rápidas (se calculan con los datos ya cargados, sin peticiones extra) -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="tarjeta-dato">
+          <i class="bi bi-people-fill"></i>
+          <div><span class="valor" id="datoJugadores">–</span><span class="etiqueta">Jugadores</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="tarjeta-dato">
+          <i class="bi bi-trophy-fill"></i>
+          <div><span class="valor" id="datoTorneos">–</span><span class="etiqueta">Torneos</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="tarjeta-dato">
+          <i class="bi bi-broadcast"></i>
+          <div><span class="valor" id="datoEnCurso">–</span><span class="etiqueta">En curso</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="tarjeta-dato">
+          <i class="bi bi-joystick"></i>
+          <div><span class="valor" id="datoJuegos">–</span><span class="etiqueta">Videojuegos</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menú de pestañas -->
+    <ul class="nav nav-pills pestanas mb-3" id="menuPestanas" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tabJugadores" data-bs-toggle="tab" data-bs-target="#pestanaJugadores" type="button" role="tab"><i class="bi bi-people"></i> Jugadores</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tabTorneos" data-bs-toggle="tab" data-bs-target="#pestanaTorneos" type="button" role="tab"><i class="bi bi-trophy"></i> Torneos</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tabVideojuegos" data-bs-toggle="tab" data-bs-target="#pestanaVideojuegos" type="button" role="tab"><i class="bi bi-joystick"></i> Videojuegos</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ======================= JUGADORES ======================= -->
+      <section class="tab-pane fade show active panel-arena" id="pestanaJugadores" role="tabpanel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h4 titulo-seccion mb-0">Jugadores</h2>
+          <button type="button" class="btn btn-vitamina" id="btnNuevoJugador"><i class="bi bi-plus-lg"></i> Nuevo jugador</button>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <form id="formBuscarJugador" class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="number" class="form-control" id="buscarIdJugador" placeholder="ID del jugador" min="1" required>
+              <!-- GET /jugadores/{id}: al pulsar Buscar se mostrará el jugador con ese ID -->
+              <button type="submit" class="btn btn-outline-info">Buscar</button>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <form id="formFiltrarJugadores" class="input-group">
+              <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+              <input type="text" class="form-control" id="filtroJugadores" placeholder="Filtrar por nombre o nick">
+              <!-- GET /jugadores?nombre={texto}: al pulsar Filtrar se pintarán solo los jugadores que coincidan -->
+              <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+              <button type="button" class="btn btn-outline-secondary" id="btnLimpiarJugadores" aria-label="Quitar filtro"><i class="bi bi-x-lg"></i></button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Formulario de alta / edición (oculto) -->
+        <div id="panelFormJugador" class="card tarjeta-form mb-3" hidden>
+          <div class="card-body">
+            <h3 class="h5" id="tituloFormJugador">Nuevo jugador</h3>
+            <form id="formJugador" novalidate>
+              <input type="hidden" id="idJugador">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label for="nombreJugador" class="form-label">Nombre</label>
+                  <input type="text" class="form-control" id="nombreJugador" required minlength="2">
+                  <div class="invalid-feedback">Escribe al menos 2 letras.</div>
+                </div>
+                <div class="col-md-4">
+                  <label for="nickJugador" class="form-label">Nick</label>
+                  <input type="text" class="form-control" id="nickJugador" required minlength="3">
+                  <div class="invalid-feedback">El nick necesita 3 caracteres o más.</div>
+                </div>
+                <div class="col-md-4">
+                  <label for="emailJugador" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="emailJugador" required>
+                  <div class="invalid-feedback">Introduce un email válido.</div>
+                </div>
+              </div>
+              <div class="mt-3 d-flex gap-2">
+                <!-- POST /jugadores: al guardar un jugador nuevo se creará aquí -->
+                <!-- PUT /jugadores/{id}: al guardar un jugador existente se modificará aquí -->
+                <button type="submit" class="btn btn-vitamina"><i class="bi bi-check-lg"></i> Guardar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnCancelarJugador">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle tabla-arena">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Nick</th>
+                <th>Email</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <!-- GET /jugadores: aquí se pintarán los jugadores al abrir la pestaña -->
+            <!-- Cada fila tendrá un botón Editar que abre el formulario (la petición PUT se lanza al Guardar) -->
+            <!-- DELETE /jugadores/{id}: en cada fila habrá un botón Eliminar que borrará el jugador -->
+            <tbody id="cuerpoJugadores"></tbody>
+          </table>
+        </div>
+
+        <!-- Participaciones del jugador (oculto) -->
+        <div id="panelParticipacionesJugador" class="card tarjeta-form mt-3" hidden>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="h5 mb-0" id="tituloParticipacionesJugador">Participaciones del jugador</h3>
+              <button type="button" class="btn-close" id="btnCerrarPartJugador" aria-label="Cerrar"></button>
+            </div>
+            <table class="table table-sm mt-2">
+              <thead>
+                <tr>
+                  <th>Torneo</th>
+                  <th>Videojuego</th>
+                  <th>Posición</th>
+                </tr>
+              </thead>
+              <!-- GET /jugadores/{id}/participaciones: aquí se pintarán los torneos en los que ha participado el jugador -->
+              <tbody id="cuerpoParticipacionesJugador"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= TORNEOS ======================= -->
+      <section class="tab-pane fade panel-arena" id="pestanaTorneos" role="tabpanel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h4 titulo-seccion mb-0">Torneos</h2>
+          <button type="button" class="btn btn-vitamina" id="btnNuevoTorneo"><i class="bi bi-plus-lg"></i> Nuevo torneo</button>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <form id="formBuscarTorneo" class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="number" class="form-control" id="buscarIdTorneo" placeholder="ID del torneo" min="1" required>
+              <!-- GET /torneos/{id}: al pulsar Buscar se mostrará el torneo con ese ID -->
+              <button type="submit" class="btn btn-outline-info">Buscar</button>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <form id="formFiltrarTorneos" class="input-group">
+              <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+              <select class="form-select" id="filtroEstadoTorneo">
+                <option value="">Todos los estados</option>
+                <option value="ABIERTO">ABIERTO</option>
+                <option value="EN_CURSO">EN_CURSO</option>
+                <option value="FINALIZADO">FINALIZADO</option>
+              </select>
+              <!-- GET /torneos?estado={estado}: al pulsar Filtrar se pintarán solo los torneos de ese estado -->
+              <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Formulario de alta / edición (oculto) -->
+        <div id="panelFormTorneo" class="card tarjeta-form mb-3" hidden>
+          <div class="card-body">
+            <h3 class="h5" id="tituloFormTorneo">Nuevo torneo</h3>
+            <form id="formTorneo" novalidate>
+              <input type="hidden" id="idTorneo">
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <label for="nombreTorneo" class="form-label">Nombre</label>
+                  <input type="text" class="form-control" id="nombreTorneo" required minlength="3">
+                  <div class="invalid-feedback">Pon un nombre de 3 caracteres o más.</div>
+                </div>
+                <div class="col-md-3">
+                  <label for="fechaTorneo" class="form-label">Fecha</label>
+                  <input type="date" class="form-control" id="fechaTorneo" required>
+                  <div class="invalid-feedback">Elige una fecha.</div>
+                </div>
+                <div class="col-md-3">
+                  <label for="estadoTorneo" class="form-label">Estado</label>
+                  <select class="form-select" id="estadoTorneo" required>
+                    <option value="ABIERTO">ABIERTO</option>
+                    <option value="EN_CURSO">EN_CURSO</option>
+                    <option value="FINALIZADO">FINALIZADO</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label for="juegoTorneo" class="form-label">Videojuego</label>
+                  <select class="form-select" id="juegoTorneo" required>
+                    <option value=""></option>
+                    <!-- GET /videojuegos: aquí se pintarán los videojuegos como opciones del selector -->
+                  </select>
+                  <div class="invalid-feedback">Un torneo siempre lleva videojuego.</div>
+                </div>
+              </div>
+              <div class="mt-3 d-flex gap-2">
+                <!-- POST /torneos: al guardar un torneo nuevo se creará aquí -->
+                <!-- PUT /torneos/{id}: al guardar un torneo existente se modificará aquí -->
+                <button type="submit" class="btn btn-vitamina"><i class="bi bi-check-lg"></i> Guardar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnCancelarTorneo">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle tabla-arena">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Videojuego</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <!-- GET /torneos: aquí se pintarán los torneos al abrir la pestaña -->
+            <!-- Cada fila tendrá un botón Editar que abre el formulario (la petición PUT se lanza al Guardar) -->
+            <!-- DELETE /torneos/{id}: en cada fila habrá un botón Eliminar que borrará el torneo -->
+            <tbody id="cuerpoTorneos"></tbody>
+          </table>
+        </div>
+
+        <!-- Participaciones del torneo (oculto) -->
+        <div id="panelParticipacionesTorneo" class="card tarjeta-form mt-3" hidden>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="h5 mb-0" id="tituloParticipacionesTorneo">Participantes del torneo</h3>
+              <button type="button" class="btn-close" id="btnCerrarPartTorneo" aria-label="Cerrar"></button>
+            </div>
+            <table class="table table-sm mt-2">
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Nick</th>
+                  <th>Posición</th>
+                </tr>
+              </thead>
+              <!-- GET /torneos/{id}/participaciones: aquí se pintarán los jugadores inscritos en el torneo -->
+              <tbody id="cuerpoParticipacionesTorneo"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= VIDEOJUEGOS ======================= -->
+      <section class="tab-pane fade panel-arena" id="pestanaVideojuegos" role="tabpanel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h4 titulo-seccion mb-0">Videojuegos</h2>
+          <button type="button" class="btn btn-vitamina" id="btnNuevoJuego"><i class="bi bi-plus-lg"></i> Nuevo videojuego</button>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <form id="formBuscarJuego" class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="number" class="form-control" id="buscarIdJuego" placeholder="ID del videojuego" min="1" required>
+              <!-- GET /videojuegos/{id}: al pulsar Buscar se mostrará el videojuego con ese ID -->
+              <button type="submit" class="btn btn-outline-info">Buscar</button>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <form id="formFiltrarJuegos" class="input-group">
+              <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+              <input type="text" class="form-control" id="filtroGeneroJuego" placeholder="Filtrar por género">
+              <!-- GET /videojuegos?genero={genero}: al pulsar Filtrar se pintarán solo los videojuegos de ese género -->
+              <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+              <button type="button" class="btn btn-outline-secondary" id="btnLimpiarJuegos" aria-label="Quitar filtro"><i class="bi bi-x-lg"></i></button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Formulario de alta (oculto). Sin edición: el caso de uso no la permite -->
+        <div id="panelFormJuego" class="card tarjeta-form mb-3" hidden>
+          <div class="card-body">
+            <h3 class="h5">Nuevo videojuego</h3>
+            <form id="formJuego" novalidate>
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label for="tituloJuego" class="form-label">Título</label>
+                  <input type="text" class="form-control" id="tituloJuego" required>
+                  <div class="invalid-feedback">El título es obligatorio.</div>
+                </div>
+                <div class="col-md-4">
+                  <label for="generoJuego" class="form-label">Género</label>
+                  <input type="text" class="form-control" id="generoJuego" required list="listaGeneros">
+                  <datalist id="listaGeneros">
+                    <option value="Shooter"><option value="MOBA"><option value="Deportes"><option value="Lucha"><option value="Estrategia"><option value="Battle Royale">
+                  </datalist>
+                  <div class="invalid-feedback">Indica el género.</div>
+                </div>
+                <div class="col-md-4">
+                  <label for="plataformaJuego" class="form-label">Plataforma</label>
+                  <input type="text" class="form-control" id="plataformaJuego" required>
+                  <div class="invalid-feedback">Indica la plataforma.</div>
+                </div>
+              </div>
+              <div class="mt-3 d-flex gap-2">
+                <!-- POST /videojuegos: al guardar se creará el videojuego nuevo -->
+                <button type="submit" class="btn btn-vitamina"><i class="bi bi-check-lg"></i> Guardar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnCancelarJuego">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sin columna de acciones: no hay Editar ni Eliminar en Videojuegos -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle tabla-arena">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Género</th>
+                <th>Plataforma</th>
+              </tr>
+            </thead>
+            <!-- GET /videojuegos: aquí se pintarán los videojuegos al abrir la pestaña -->
+            <tbody id="cuerpoJuegos"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="container pb-4 text-center pie">
+    GameArena · IES Juan García Valdemora · 2.º DAW
+  </footer>
+
+  <!-- Modal de detalle (resultado de buscar por ID) -->
+  <div class="modal fade" id="modalDetalle" tabindex="-1" aria-labelledby="tituloDetalle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloDetalle">Detalle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="cuerpoDetalle"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar -->
+  <div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="tituloConfirmar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloConfirmar"><i class="bi bi-exclamation-triangle text-warning"></i> Confirmar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="textoConfirmar"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmarSi">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Avisos (toasts) -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="contenedorAvisos"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Scripts propios: el orden importa -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/jugadores.js"></script>
+  <script src="js/torneos.js"></script>
+  <script src="js/videojuegos.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+/* ===== GameArena · estilos propios ===== */
+
+:root {
+  --vitamina: #b6ff3b;          /* verde lima, color de acento */
+  --vitamina-oscuro: #8fd400;
+  --violeta: #7c5cff;
+  --fondo: #0d0f17;
+  --superficie: #161a26;
+  --borde: #262b3b;
+  --texto-suave: #9aa3b8;
+  --radio: 14px;
+}
+
+[data-bs-theme="light"] {
+  --vitamina: #5a9e00;
+  --vitamina-oscuro: #467a00;
+  --fondo: #f3f5fa;
+  --superficie: #ffffff;
+  --borde: #dfe3ec;
+  --texto-suave: #5d667a;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(124, 92, 255, .18), transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, rgba(182, 255, 59, .10), transparent 60%),
+    var(--fondo);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+h1, h2, h3, .marca, .titulo-seccion, .valor {
+  font-family: "Chakra Petch", sans-serif;
+}
+
+/* Barra superior */
+.barra-arena {
+  background: rgba(13, 15, 23, .85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--borde);
+}
+[data-bs-theme="light"] .barra-arena { background: rgba(255, 255, 255, .85); }
+.marca { font-weight: 700; font-size: 1.4rem; letter-spacing: .5px; }
+.marca span { color: var(--vitamina); }
+.marca i { color: var(--violeta); }
+
+/* Tarjetas de estadísticas */
+.tarjeta-dato {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  transition: transform .2s, border-color .2s;
+}
+.tarjeta-dato:hover { transform: translateY(-3px); border-color: var(--vitamina); }
+.tarjeta-dato i {
+  font-size: 1.6rem; color: var(--vitamina);
+  width: 48px; height: 48px; display: grid; place-items: center;
+  background: rgba(182, 255, 59, .1); border-radius: 12px;
+}
+.tarjeta-dato .valor { display: block; font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.tarjeta-dato .etiqueta { font-size: .8rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Pestañas */
+.pestanas .nav-link {
+  color: var(--texto-suave);
+  border-radius: 999px;
+  padding: .5rem 1.1rem;
+  font-weight: 600;
+}
+.pestanas .nav-link.active {
+  background: var(--vitamina);
+  color: #10140a;
+  box-shadow: 0 0 18px rgba(182, 255, 59, .35);
+}
+
+/* Paneles */
+.panel-arena {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+}
+.titulo-seccion { position: relative; padding-left: .8rem; }
+.titulo-seccion::before {
+  content: ""; position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 4px; border-radius: 4px; background: var(--vitamina);
+}
+.tarjeta-form {
+  border: 1px dashed var(--vitamina);
+  background: rgba(182, 255, 59, .04);
+  animation: aparecer .25s ease;
+}
+
+/* Botón principal */
+.btn-vitamina {
+  background: var(--vitamina); color: #10140a;
+  font-weight: 600; border: none;
+}
+.btn-vitamina:hover, .btn-vitamina:focus-visible {
+  background: var(--vitamina-oscuro); color: #10140a;
+  box-shadow: 0 0 14px rgba(182, 255, 59, .4);
+}
+
+/* Tablas */
+.tabla-arena { --bs-table-bg: transparent; margin-bottom: 0; }
+.tabla-arena thead th {
+  font-size: .75rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--texto-suave); border-bottom-color: var(--borde);
+}
+.tabla-arena tbody tr { animation: aparecer .3s ease both; }
+.tabla-arena tbody tr.resaltada { outline: 2px solid var(--vitamina); outline-offset: -2px; }
+.nick { color: var(--violeta); font-weight: 600; }
+[data-bs-theme="dark"] .nick { color: #a996ff; }
+.id-celda { font-family: ui-monospace, monospace; color: var(--texto-suave); }
+
+/* Estados de torneo */
+.estado { font-size: .72rem; letter-spacing: .5px; padding: .35em .7em; border-radius: 999px; font-weight: 700; }
+.estado-ABIERTO    { background: rgba(182, 255, 59, .15); color: var(--vitamina); }
+.estado-EN_CURSO   { background: rgba(255, 193, 7, .15);  color: #ffc107; }
+.estado-FINALIZADO { background: rgba(154, 163, 184, .15); color: var(--texto-suave); }
+
+/* Medallas de posición */
+.medalla { font-weight: 700; }
+.medalla-1 { color: #ffd54a; } .medalla-2 { color: #cfd8dc; } .medalla-3 { color: #e0915a; }
+
+/* Estados vacíos y carga */
+.vacio { text-align: center; padding: 2.5rem 1rem; color: var(--texto-suave); }
+.vacio i { font-size: 2rem; display: block; margin-bottom: .5rem; }
+.esqueleto {
+  height: 1rem; border-radius: 6px;
+  background: linear-gradient(90deg, var(--borde) 25%, rgba(255,255,255,.08) 50%, var(--borde) 75%);
+  background-size: 200% 100%;
+  animation: brillo 1.2s infinite;
+}
+
+.pie { color: var(--texto-suave); font-size: .85rem; }
+
+@keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes brillo { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 576px) {
+  .panel-arena { padding: 1rem; }
+  .tarjeta-dato { padding: .8rem; gap: .6rem; }
+  .tarjeta-dato i { width: 38px; height: 38px; font-size: 1.2rem; }
+  .tarjeta-dato .valor { font-size: 1.3rem; }
+}
